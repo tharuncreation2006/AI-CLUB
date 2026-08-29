@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI CLUB ACTIVITY</title>
+<style>
+  :root{
+    --bg:#1b1d2b;
+    --panel:#242739;
+    --text:#e8e9f3;
+    --muted:#9a9cb8;
+    --accent:#7f77dd;
+    --good:#5dcaa5;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;
+    padding:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    -webkit-user-select:none;
+    -moz-user-select:none;
+    -ms-user-select:none;
+    user-select:none;
+    -webkit-touch-callout:none;
+  }
+  body{
+    display:flex;
+    justify-content:center;
+    padding:28px 14px 60px;
+  }
+  .wrap{width:100%;max-width:640px;}
+  h1{
+    font-size:20px;
+    font-weight:600;
+    margin:0 0 4px;
+    text-align:center;
+  }
+  p.sub{
+    font-size:14px;
+    color:var(--muted);
+    text-align:center;
+    margin:0 0 24px;
+  }
+  #board{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .block{
+    position:relative;
+    padding:16px 18px 22px;
+    border-radius:12px;
+    font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    font-size:13.5px;
+    line-height:1.5;
+    white-space:pre-wrap;
+    cursor:pointer;
+    border:2px solid transparent;
+    transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    box-shadow:0 3px 0 rgba(0,0,0,.35);
+  }
+  .block:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.35);}
+  .block .tag{
+    display:block;
+    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:10.5px;
+    font-weight:600;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    opacity:.75;
+    margin-bottom:6px;
+  }
+  .stud{
+    position:absolute;
+    top:-9px;
+    width:20px;
+    height:14px;
+    border-radius:6px 6px 0 0;
+  }
+  .stud.a{left:24px;}
+  .stud.b{left:54px;}
+  .block.selected{
+    border-color:#fff;
+    transform:scale(1.02);
+  }
+  .block.correct{
+    outline:2px solid var(--good);
+    outline-offset:2px;
+  }
+
+  .c-blue{background:#185fa5;}      .c-blue .stud{background:#185fa5;}
+  .c-teal{background:#0f6e56;}      .c-teal .stud{background:#0f6e56;}
+  .c-amber{background:#854f0b;}     .c-amber .stud{background:#854f0b;}
+  .c-purple{background:#534ab7;}    .c-purple .stud{background:#534ab7;}
+  .c-coral{background:#993c1d;}     .c-coral .stud{background:#993c1d;}
+
+  #controls{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin-top:26px;
+  }
+  button{
+    font-family:inherit;
+    font-size:14px;
+    font-weight:600;
+    padding:10px 18px;
+    border-radius:8px;
+    border:none;
+    cursor:pointer;
+  }
+  #check{background:var(--accent);color:#fff;}
+  #shuffle{background:transparent;color:var(--text);border:1px solid #454863;}
+  #status{
+    text-align:center;
+    margin-top:16px;
+    font-size:14px;
+    min-height:20px;
+    color:var(--good);
+  }
+  body.shielded #board,
+  body.shielded #controls{
+    filter:blur(14px);
+    transition:filter .1s ease;
+  }
+  #shield-msg{
+    display:none;
+    position:fixed;
+    inset:0;
+    align-items:center;
+    justify-content:center;
+    background:rgba(27,29,43,.9);
+    font-size:14px;
+    color:var(--muted);
+    z-index:5;
+  }
+  body.shielded #shield-msg{display:flex;}
+</style>
+</head>
+<body oncontextmenu="return false;" oncopy="return false;" oncut="return false;" onselectstart="return false;">
+<div class="wrap">
+  <h1>rearrange the block of code python 🐍 to make a AI MODEL🤖</h1>
+  <p class="sub">Tap a block, then tap another to swap places. Get all 10 in the right order.</p>
+  <div id="board"></div>
+  <div id="controls">
+    <button id="shuffle">Shuffle again</button>
+  </div>
+  <div id="status"></div>
+</div>
+<div id="shield-msg">Content hidden while window is unfocused</div>
+
+<script>
+const parts = [
+  { tag: "import", color: "c-blue", code: "from sklearn.feature_extraction.text import CountVectorizer" },
+  { tag: "import", color: "c-blue", code: "from sklearn.naive_bayes import MultinomialNB" },
+  { tag: "data", color: "c-teal", code: 'texts = [\n    "I love this",\n    "This is amazing",\n    "I hate this",\n    "This is terrible"\n]' },
+  { tag: "data", color: "c-teal", code: 'labels = [\n    "Positive",\n    "Positive",\n    "Negative",\n    "Negative"\n]' },
+  { tag: "vectorize", color: "c-amber", code: "vectorizer = CountVectorizer()" },
+  { tag: "vectorize", color: "c-amber", code: "X = vectorizer.fit_transform(texts)" },
+  { tag: "model", color: "c-purple", code: "model = MultinomialNB()" },
+  { tag: "model", color: "c-purple", code: "model.fit(X, labels)" },
+  { tag: "predict", color: "c-coral", code: 'test = ["This movie is amazing"]' },
+  { tag: "predict", color: "c-coral", code: "prediction = model.predict(\n    vectorizer.transform(test)\n)\nprint(prediction)" }
+];
+
+let order = parts.map((_, i) => i);
+let selected = null;
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  const isSame = a.every((v, i) => v === arr[i]);
+  return isSame ? shuffle(arr) : a;
+}
+
+function render() {
+  const board = document.getElementById("board");
+  board.innerHTML = "";
+  order.forEach((partIndex, pos) => {
+    const p = parts[partIndex];
+    const el = document.createElement("div");
+    el.className = "block " + p.color + (selected === pos ? " selected" : "");
+    el.dataset.pos = pos;
+    el.innerHTML =
+      '<span class="stud a"></span><span class="stud b"></span>' +
+      '<span class="tag">' + p.tag + '</span>' + escapeHtml(p.code);
+    el.addEventListener("click", () => handleClick(pos));
+    board.appendChild(el);
+  });
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function handleClick(pos) {
+  document.getElementById("status").textContent = "";
+  if (selected === null) {
+    selected = pos;
+  } else if (selected === pos) {
+    selected = null;
+  } else {
+    [order[selected], order[pos]] = [order[pos], order[selected]];
+    selected = null;
+    checkOrder();
+  }
+  render();
+}
+
+function checkOrder() {
+  const status = document.getElementById("status");
+  const isCorrect = order.every((v, i) => v === i);
+  if (isCorrect) {
+    status.style.color = "#5dcaa5";
+    status.textContent = "That's the correct order — the classifier is built.";
+  } else {
+    status.style.color = "";
+    status.textContent = "";
+  }
+}
+
+document.getElementById("shuffle").addEventListener("click", () => {
+  order = shuffle(parts.map((_, i) => i));
+  selected = null;
+  document.getElementById("status").textContent = "";
+  render();
+});
+
+order = shuffle(order);
+render();
+
+window.addEventListener("blur", () => document.body.classList.add("shielded"));
+window.addEventListener("focus", () => document.body.classList.remove("shielded"));
+document.addEventListener("visibilitychange", () => {
+  document.body.classList.toggle("shielded", document.hidden);
+});
+document.addEventListener("keyup", (e) => {
+  if (e.key === "PrintScreen") {
+    navigator.clipboard && navigator.clipboard.writeText("");
+    document.body.classList.add("shielded");
+    setTimeout(() => document.body.classList.remove("shielded"), 1500);
+  }
+});
+</script>
+</body>
+</html>
